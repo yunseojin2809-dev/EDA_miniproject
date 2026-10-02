@@ -1,0 +1,8 @@
+archive/
+cache/
+*.mat
+*.pkl
+results/_to_delete/
+.ipynb_checkpoints/
+__pycache__/
+.DS_Store
