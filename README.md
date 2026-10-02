@@ -105,5 +105,5 @@ python -m src.train --eval-batches 2        # data/ 의 CSV 만으로 재현 (�
 - Severson et al. (2019). Data-driven prediction of battery cycle life before capacity degradation. *Nature Energy*, 4, 383–391.
 
 ## 팀 구성
-- 강지훈 : (역할 기입)
-- 윤서진 : (역할 기입)
+- 강지훈 : 데이터 전처리, EDA, 피처 엔지니어링, 성능 평가
+- 윤서진 : EDA, 피처 엔지니어링, 모델 개발, 보고서 작성
