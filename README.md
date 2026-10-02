@@ -28,8 +28,8 @@
 
 ## 환경 설정
 ```bash
-git clone https://github.com/<팀명>/ess-battery-project
-cd ess-battery-project
+git clone https://github.com/yunseojin2809-dev/EDA_miniproject
+cd EDA_miniproject
 pip install -r requirements.txt
 python -m src.train --eval-batches 2        # data/ 의 CSV 만으로 재현 (약 30초)
 ```
