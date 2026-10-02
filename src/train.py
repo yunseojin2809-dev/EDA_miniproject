@@ -1,4 +1,4 @@
-"""모델 비교 → 선택(Train 정책단위 CV 기준) → Valid / Test 평가 → results/ 저장.
+"""모델 비교 → 선택(Train 충전 프로토콜 단위 CV 기준) → Valid / Test 평가 → results/ 저장.
 
     python -m src.train --eval-batches 2          # 필수 (Batch 2)
     python -m src.train --eval-batches 2 3        # Batch 3 추가 시
@@ -68,7 +68,7 @@ def cv_score(d, cols, make, splits):
 
 
 def compare_models(TR: pd.DataFrame, VA: pd.DataFrame) -> pd.DataFrame:
-    """Train 안에서 정책단위 CV(선택 기준) / 랜덤 CV(Day 1 방식, 비교용) / Valid 를 모두 계산."""
+    """Train 안에서 충전 프로토콜 단위 CV(선택 기준) / 랜덤 CV(Day 1 방식, 비교용) / Valid 를 모두 계산."""
     rows = []
     for fs, cols, mn in valid_combos():
         d = TR.dropna(subset=cols).reset_index(drop=True)
@@ -103,15 +103,15 @@ def holdout_robustness(b1, cols, mn, n=30):
     return np.array(s)
 
 
-STAGES = {"stage1": ("1차 (사전 확정)", "CV_group"),          # 정책단위 CV 최소
-          "stage2": ("개선 후 (외삽 검증 반영)", "score_stage2")}   # (정책단위 CV + 외삽 CV)/2 최소
+STAGES = {"stage1": ("1차 (사전 확정)", "CV_group"),          # 충전 프로토콜 단위 CV 최소
+          "stage2": ("개선 후 (외삽 검증 반영)", "score_stage2")}   # (충전 프로토콜 단위 CV + 외삽 CV)/2 최소
 PLOT_TAG = {"stage1": "Stage 1 (pre-registered)", "stage2": "Stage 2 (extrapolation-aware)"}   # 그림 제목은 영문 (한글 폰트 없는 환경 대비)
 
 
 def perf_table(train_cv, train_sd, valid, rob, n_valid, perf, fs, mn):
     t2 = perf[2]["test"]
-    rows = [("Train (Batch 1 CV)", train_cv, f"정책단위 Repeated 5-Fold x10, SD={train_sd:.1f}"),
-            ("Valid (Batch 1 Hold-out)", valid, f"정책단위 Hold-out {n_valid}셀; 30개 시드 평균 {rob.mean():.1f}+-{rob.std():.1f} (범위 {rob.min():.1f}~{rob.max():.1f})"),
+    rows = [("Train (Batch 1 CV)", train_cv, f"충전 프로토콜 단위 Repeated 5-Fold x10, SD={train_sd:.1f}"),
+            ("Valid (Batch 1 Hold-out)", valid, f"충전 프로토콜 단위 Hold-out {n_valid}셀; 30개 시드 평균 {rob.mean():.1f}+-{rob.std():.1f} (범위 {rob.min():.1f}~{rob.max():.1f})"),
             ("Test (Batch 2)", t2, f"Batch1 전체({perf[2]['n_fit']}셀) 재학습, n={perf[2]['n']}; Train 부분만 학습 시 {perf[2]['test_trainonly']:.1f}"),
             ("Gap (Train-Valid)", valid - train_cv, "(+) : 과적합 의심  [Valid - Train]"),
             ("Gap (Valid-Test)", t2 - valid, "(+) : 배치간 일반화 저하 의심  [Test - Valid]"),
@@ -179,7 +179,7 @@ def main():
     df = load_data(Path(a.data)); b1 = df[df.batch == 1].reset_index(drop=True)
     tr_i, va_i, chosen = group_holdout(b1, SEED)
     TR, VA = b1.loc[tr_i].reset_index(drop=True), b1.loc[va_i].reset_index(drop=True)
-    print(f"Batch1 {len(b1)}셀 -> Train {len(TR)} / Valid {len(VA)} (정책 단위, Valid 정책: {chosen})")
+    print(f"Batch1 {len(b1)}셀 -> Train {len(TR)} / Valid {len(VA)} (충전 프로토콜 단위, Valid 충전 프로토콜: {chosen})")
 
     cv = compare_models(TR, VA); cv.sort_values("score_stage2").to_csv(out / "cv_comparison.csv", index=False)
     pd.set_option("display.width", 220)

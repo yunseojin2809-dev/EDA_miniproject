@@ -1,4 +1,4 @@
-"""정책(충전 프로토콜) 단위 분리 — 같은 정책의 셀이 Train/Valid 양쪽에 들어가는 누수를 차단."""
+"""충전 프로토콜 단위 분리 — 같은 충전 프로토콜의 셀이 Train/Valid 양쪽에 들어가는 누수를 차단."""
 from __future__ import annotations
 
 import numpy as np
@@ -13,8 +13,8 @@ def mape(y_log, p_log) -> float:
 
 
 def group_holdout(d: pd.DataFrame, seed: int = 42, target_frac: float = 0.2, tries: int = 5000):
-    """정책 단위 Hold-out (셀 비율 ≈20%).
-    조건: Valid 정책이 Train 에 전혀 없을 것 + Valid 수명이 Train 수명 분포(25~75%)를 걸칠 것."""
+    """충전 프로토콜 단위 Hold-out (셀 비율 ≈20%).
+    조건: Valid 충전 프로토콜이 Train 에 전혀 없을 것 + Valid 수명이 Train 수명 분포(25~75%)를 걸칠 것."""
     rng = np.random.default_rng(seed)
     pols, n = d.policy.unique(), len(d)
     want = round(n * target_frac)
@@ -33,11 +33,11 @@ def group_holdout(d: pd.DataFrame, seed: int = 42, target_frac: float = 0.2, tri
         if va.cycle_life.min() <= q25 and va.cycle_life.max() >= q75:
             assert set(tr.policy).isdisjoint(va.policy)
             return tr.index.values, va.index.values, chosen
-    raise RuntimeError("조건을 만족하는 정책 단위 Hold-out 을 찾지 못함")
+    raise RuntimeError("조건을 만족하는 충전 프로토콜 단위 Hold-out 을 찾지 못함")
 
 
 def repeated_group_folds(groups, n_splits: int = 5, n_repeats: int = 10, seed: int = 0):
-    """정책 단위 Repeated K-Fold: 정책(그룹)을 무작위로 섞어 폴드별 셀 수가 비슷하게 배분."""
+    """충전 프로토콜 단위 Repeated K-Fold: 충전 프로토콜(그룹)을 무작위로 섞어 폴드별 셀 수가 비슷하게 배분."""
     rng = np.random.default_rng(seed)
     g = np.asarray(groups); ug = np.unique(g)
     for _ in range(n_repeats):
@@ -57,7 +57,7 @@ def random_folds(n: int, n_splits: int = 5, n_repeats: int = 10, seed: int = 0):
 
 
 def extrapolation_splits(d: pd.DataFrame, fracs=(0.2, 0.25, 0.3)):
-    """외삽 검증: 수명이 가장 짧은 정책들을 검증으로, 나머지(더 긴 수명)로 학습.
+    """외삽 검증: 수명이 가장 짧은 충전 프로토콜들을 검증으로, 나머지(더 긴 수명)로 학습.
     → 'Train 수명 범위 밖(더 짧은 쪽)' 예측 능력을 Batch 1 안에서만 평가 (Batch 2 라벨 미사용)."""
     med = d.groupby("policy").cycle_life.median().sort_values()
     for f in fracs:
