@@ -6,3 +6,4 @@ matplotlib>=3.7
 h5py>=3.8          # .mat(v7.3, HDF5) 추출용 — 캐시/CSV 로 재현할 때는 불필요
 jupyter
 nbformat
+shap
