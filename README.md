@@ -22,7 +22,7 @@
 | Day 2 정제 | 5단계 정제, 동일 셀의 후속 측정 데이터 연결 병합은 검증 후 적용 | 라벨 결측·센서 이상·논문 병합 규칙 불일치 | 139셀 → 115셀 |
 | Day 2 검증 | 랜덤 CV → **충전 프로토콜 단위 CV** | 같은 프로토콜의 형제 셀이 학습에 들어가는 누수 방지 | 27개 조합 확인 및 측정(3절) |
 | Day 2 모델 | 27개 조합 비교, 프로토콜 단위 CV 최소 선택 | 소표본에서 안정적인 모델 | D6 피처 셋 + ElasticNet |
-| 결과 후 수정 | 정제 오류 2건 수정, 외삽 CV 재선택은 효과 없음 | Test 격차 분석, 다른 구현과의 비교 | Test B2 38.5 → 26.9 |
+| 결과 후 수정 | 정제 오류 2건 수정, 외삽 CV 재선택은 효과 없음 | Test 격차 분석, 베이스라인 재현 점검 | Test B2 38.5 → 26.9 |
 | **추가 분석** | SHAP 으로 Batch 2 편향을 피처별로 분해 | 초기 용량 피처가 원인이라는 가설 확인 | 가설은 일부만 맞음(8절) |
 
 ## 파일 구조
@@ -50,7 +50,7 @@
 git clone https://github.com/yunseojin2809-dev/EDA_miniproject
 cd EDA_miniproject
 pip install -r requirements.txt
-python -m src.train --eval-batches 2 3      # data/ 의 CSV 만으로 재현 (약 1~2분)
+python -m src.train --eval-batches 2 3      # data/ 의 CSV 만으로 재현 
 ```
 
 ## 1. Day 1 : EDA 로 세운 모델링 전략
