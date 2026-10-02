@@ -1,0 +1,77 @@
+Batch1 36셀 -> Train 29 / Valid 7 (정책 단위, Valid 정책: ['6C(40%)-3C', '4.8C(80%)-4.8C', '5.4C(40%)-3.6C', '7C(40%)-3.6C'])
+                  featset       model  n_feat  CV_group  CV_group_sd  CV_random  CV_random_sd  CV_extrap  score_stage2  Valid
+16       D6 dQ4+QD2+QDmax       Ridge       6       5.6          1.4        5.3           1.4        6.3           6.0    7.5
+17       D6 dQ4+QD2+QDmax  ElasticNet       6       5.5          1.4        5.2           1.4        6.8           6.1    7.5
+15       D6 dQ4+QD2+QDmax      Linear       6       5.7          1.8        5.4           1.4        6.9           6.3    7.7
+19       D6 dQ4+QD2+QDmax         GPR       6       6.5          3.5        5.5           1.4       12.3           9.4    8.0
+18       D6 dQ4+QD2+QDmax      PLS(2)       6       7.2          2.7        6.2           2.3       13.0          10.1    8.5
+0                  V1 var      Linear       1       8.7          2.0        8.5           2.8       12.6          10.7    9.7
+9                  D4 dQ4      Linear       4       8.3          2.1        8.0           2.5       14.0          11.1    9.2
+3              V2 var+min      Linear       2       8.3          1.9        7.8           2.3       15.0          11.7    8.7
+6              V2 var+min      PLS(2)       2       8.3          1.9        7.8           2.3       15.0          11.7    8.7
+5              V2 var+min  ElasticNet       2       8.7          2.0        8.2           2.6       15.0          11.8    8.8
+10                 D4 dQ4       Ridge       4       9.2          2.2        8.5           2.6       14.6          11.9    9.2
+4              V2 var+min       Ridge       2       9.1          2.2        8.5           2.7       14.9          12.0    8.7
+11                 D4 dQ4  ElasticNet       4       8.7          2.0        8.3           2.4       15.6          12.1    9.2
+12                 D4 dQ4      PLS(2)       4      10.1          2.6        9.5           2.9       18.7          14.4   10.2
+21  S7 dQ4+chg+Tavg+IRmin      Linear       7      10.5          2.8        9.7           2.9       19.0          14.7    9.2
+2                  V1 var    GBM(d=2)       1      11.6          3.6       10.8           3.2       18.3          14.9    9.1
+8              V2 var+min    GBM(d=2)       2      11.2          3.8       10.3           3.4       18.7          14.9    8.6
+14                 D4 dQ4    GBM(d=2)       4      12.2          3.7       10.6           3.2       18.5          15.4   12.6
+20       D6 dQ4+QD2+QDmax    GBM(d=2)       6      11.3          3.1       10.5           2.6       19.8          15.6    9.4
+23  S7 dQ4+chg+Tavg+IRmin  ElasticNet       7      11.2          2.1        9.9           3.1       20.4          15.8   10.3
+24  S7 dQ4+chg+Tavg+IRmin      PLS(2)       7      11.9          3.6       10.9           3.3       21.8          16.9    9.6
+1                  V1 var         GPR       1       9.7          3.1        8.9           2.9       24.5          17.1    9.7
+22  S7 dQ4+chg+Tavg+IRmin       Ridge       7      12.5          2.9       10.8           3.5       23.2          17.8    9.2
+26  S7 dQ4+chg+Tavg+IRmin    GBM(d=2)       7      13.3          4.1       11.1           3.4       23.4          18.4   11.7
+7              V2 var+min         GPR       2       9.9          3.3        9.0           3.0       26.9          18.4    9.7
+13                 D4 dQ4         GPR       4      10.5          5.0        8.5           3.3       27.1          18.8   11.0
+25  S7 dQ4+chg+Tavg+IRmin         GPR       7      13.3          5.0       10.3           3.3       31.3          22.3   13.5
+
+=== 1차 (사전 확정) :: 선택 기준 CV_group -> D6 dQ4+QD2+QDmax / ElasticNet  (CV_group=5.5, CV_extrap=6.8) ===
+                         구분  MAPE (%)                                                비고
+         Train (Batch 1 CV)       5.5                  정책단위 Repeated 5-Fold x10, SD=1.4
+   Valid (Batch 1 Hold-out)       7.5 정책단위 Hold-out 7셀; 30개 시드 평균 6.2+-1.5 (범위 3.1~9.1)
+             Test (Batch 2)      26.9     Batch1 전체(36셀) 재학습, n=39; Train 부분만 학습 시 26.8
+          Gap (Train-Valid)       2.0                     (+) : 과적합 의심  [Valid - Train]
+           Gap (Valid-Test)      19.4               (+) : 배치간 일반화 저하 의심  [Test - Valid]
+          Gap (Target-Test)      17.8                Target : 원논문 9.1%  [Test - Target]
+             Test (Batch 3)       9.8                                              n=40
+        Gap (Batch2-Batch3)     -17.1                   Test 성능 간 비교  [Batch3 - Batch2]
+Gap (Target-Test) [Batch 3]       0.7                             Batch 3 기준, 원논문 성능 비교
+Test(B2) 평균 부호오차(예측-실제)/실제 = 26.2%
+ group  count  mean  median  max              by
+ False     30  23.4    25.6 42.9   new_structure
+  True      9  38.7    29.9 90.2   new_structure
+ False      9  38.7    29.9 90.2 below_train_min
+  True     30  23.4    25.6 42.9 below_train_min
+
+=== 개선 후 (외삽 검증 반영) :: 선택 기준 score_stage2 -> D6 dQ4+QD2+QDmax / Ridge  (CV_group=5.6, CV_extrap=6.3) ===
+                         구분  MAPE (%)                                                비고
+         Train (Batch 1 CV)       5.6                  정책단위 Repeated 5-Fold x10, SD=1.4
+   Valid (Batch 1 Hold-out)       7.5 정책단위 Hold-out 7셀; 30개 시드 평균 6.0+-1.4 (범위 3.1~8.8)
+             Test (Batch 2)      27.5     Batch1 전체(36셀) 재학습, n=39; Train 부분만 학습 시 27.6
+          Gap (Train-Valid)       1.9                     (+) : 과적합 의심  [Valid - Train]
+           Gap (Valid-Test)      19.9               (+) : 배치간 일반화 저하 의심  [Test - Valid]
+          Gap (Target-Test)      18.4                Target : 원논문 9.1%  [Test - Target]
+             Test (Batch 3)       9.8                                              n=40
+        Gap (Batch2-Batch3)     -17.7                   Test 성능 간 비교  [Batch3 - Batch2]
+Gap (Target-Test) [Batch 3]       0.7                             Batch 3 기준, 원논문 성능 비교
+Test(B2) 평균 부호오차(예측-실제)/실제 = 26.8%
+ group  count  mean  median  max              by
+ False     30  24.7    27.3 42.5   new_structure
+  True      9  36.7    28.0 86.9   new_structure
+ False      9  36.7    28.0 86.9 below_train_min
+  True     30  24.7    27.3 42.5 below_train_min
+
+[최종 성능표]
+                          구분  1차 MAPE (%)  개선 후 MAPE (%)                                         비고 (개선 후)
+         Train (Batch 1 CV)          5.5            5.6                  정책단위 Repeated 5-Fold x10, SD=1.4
+   Valid (Batch 1 Hold-out)          7.5            7.5 정책단위 Hold-out 7셀; 30개 시드 평균 6.0+-1.4 (범위 3.1~8.8)
+             Test (Batch 2)         26.9           27.5     Batch1 전체(36셀) 재학습, n=39; Train 부분만 학습 시 27.6
+          Gap (Train-Valid)          2.0            1.9                     (+) : 과적합 의심  [Valid - Train]
+           Gap (Valid-Test)         19.4           19.9               (+) : 배치간 일반화 저하 의심  [Test - Valid]
+          Gap (Target-Test)         17.8           18.4                Target : 원논문 9.1%  [Test - Target]
+             Test (Batch 3)          9.8            9.8                                              n=40
+        Gap (Batch2-Batch3)        -17.1          -17.7                   Test 성능 간 비교  [Batch3 - Batch2]
+Gap (Target-Test) [Batch 3]          0.7            0.7                             Batch 3 기준, 원논문 성능 비교

@@ -13,7 +13,10 @@ import numpy as np
 import pandas as pd
 
 NOMINAL_CAP, EOL_CAP = 1.1, 0.88          # A123 APR18650M1A 정격 1.1Ah, SOH 80% = 0.88Ah
-CYC_LOW, CYC_HIGH = 10, 100               # ΔQ(V) = Qdlin[100] - Qdlin[10]
+CYC_LOW, CYC_HIGH = 10, 100               # ΔQ(V) = cycle 100 - cycle 10  (summary 는 cycle 번호가 index)
+# cycles 배열(h5 추출)은 0-based 이므로 cycle 10/100 = index 9/99  (원 논문 MATLAB cycles(10), cycles(100) 와 동일)
+QI_LOW, QI_HIGH = CYC_LOW - 1, CYC_HIGH - 1
+LAST_CAP_MAX = 0.90                       # 마지막 5개 유효 용량 중앙값이 0.90Ah 초과 → EOL(0.88Ah) 미도달 레이블
 KEEP_CYCLES = 121                         # 사이클별 곡선은 앞 121개(index 0..120)만 추출
 V_GRID = np.linspace(3.6, 2.0, 1000)
 LIFE_THRESHOLD = 550
@@ -121,7 +124,7 @@ def clean_summary(s: dict) -> tuple[pd.DataFrame, dict]:
 
 def clean_cells(cells: dict, force_merge: bool = False, verbose: bool = True):
     """정제 5단계. 반환: cells, SUMMARY(dict of DataFrame), meta, attrition(DataFrame), merge_table
-       ① cycle_life 결측 제거 ② 이어측정 병합(검증형) ③ summary 정제 ④ 논문 제거 목록 ⑤ 초기 윈도우 무결성"""
+       ① cycle_life 결측 제거 ② 이어측정 병합(검증형) ③ summary 정제 ④ 논문 제거 목록 + EOL 미도달 레이블 제거(마지막 용량>0.90Ah) ⑤ 초기 윈도우 무결성"""
     attr = []
 
     def snap(step):
@@ -159,11 +162,21 @@ def clean_cells(cells: dict, force_merge: bool = False, verbose: bool = True):
         del cells[c]; SUMMARY.pop(c, None)
     snap("4. 논문 제거 목록")
 
+    unfinished = []                                   # EOL 미도달 레이블(측정 종료 시점 ≠ 수명) 제거
+    for cid in cells:
+        qd = SUMMARY[cid]["QD"].dropna()
+        if len(qd) >= 5 and qd.iloc[-5:].median() > LAST_CAP_MAX:
+            unfinished.append(cid)
+    for cid in unfinished:
+        del cells[cid]; SUMMARY.pop(cid)
+    unfinished_log = unfinished
+    snap("4b. EOL 미도달(마지막 용량>0.90Ah)")
+
     bad_ids = []
     for cid, c in cells.items():
         ok = (SUMMARY[cid].index.max() >= CYC_HIGH) and all(
             k in c["qdlin"] and c["qdlin"][k].size == len(V_GRID) and np.isfinite(c["qdlin"][k]).all()
-            for k in (CYC_LOW, CYC_HIGH))
+            for k in (QI_LOW, QI_HIGH))
         if not ok:
             bad_ids.append(cid)
     for cid in bad_ids:
@@ -180,7 +193,7 @@ def clean_cells(cells: dict, force_merge: bool = False, verbose: bool = True):
     meta["log_life"] = np.log10(meta["cycle_life"])
     meta["long_life"] = (meta["cycle_life"] >= LIFE_THRESHOLD).astype(int)
     if verbose:
-        print(attr_df); print(meta.groupby("batch").size().to_dict(), "총", len(meta))
+        print(attr_df); print("EOL 미도달로 제거:", unfinished_log); print(meta.groupby("batch").size().to_dict(), "총", len(meta))
     return cells, SUMMARY, meta, attr_df, pd.DataFrame(mrows)
 
 

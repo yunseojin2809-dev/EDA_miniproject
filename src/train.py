@@ -112,7 +112,7 @@ def perf_table(train_cv, train_sd, valid, rob, n_valid, perf, fs, mn):
     t2 = perf[2]["test"]
     rows = [("Train (Batch 1 CV)", train_cv, f"정책단위 Repeated 5-Fold x10, SD={train_sd:.1f}"),
             ("Valid (Batch 1 Hold-out)", valid, f"정책단위 Hold-out {n_valid}셀; 30개 시드 평균 {rob.mean():.1f}+-{rob.std():.1f} (범위 {rob.min():.1f}~{rob.max():.1f})"),
-            ("Test (Batch 2)", t2, f"Batch1 전체(41셀) 재학습, n={perf[2]['n']}; Train(32)만 학습 시 {perf[2]['test_trainonly']:.1f}"),
+            ("Test (Batch 2)", t2, f"Batch1 전체({perf[2]['n_fit']}셀) 재학습, n={perf[2]['n']}; Train 부분만 학습 시 {perf[2]['test_trainonly']:.1f}"),
             ("Gap (Train-Valid)", valid - train_cv, "(+) : 과적합 의심  [Valid - Train]"),
             ("Gap (Valid-Test)", t2 - valid, "(+) : 배치간 일반화 저하 의심  [Test - Valid]"),
             ("Gap (Target-Test)", t2 - TARGET_MAPE, f"Target : 원논문 {TARGET_MAPE}%  [Test - Target]")]
@@ -131,7 +131,8 @@ def plot_pred(P, T, b1, fs, mn, title_tag, path):
     ax[0].plot([lo, hi], [lo, hi], color="#8a8984", lw=1, ls="--")
     for lab, g, c, mk in [("Valid (B1 hold-out)", P[P.split == "Valid"], "#2a78d6", "o"),
                           ("Test B2 legacy", T[~T.new_structure], "#eb6834", "o"),
-                          ("Test B2 newstructure", T[T.new_structure], "#eb6834", "D")]:
+                          ("Test B2 newstructure", T[T.new_structure], "#eb6834", "D"),
+                          ("Test B3 (all newstructure)", P[P.split == "Test(B3)"], "#2f9e6e", "s")]:
         ax[0].scatter(g.cycle_life, g.pred, s=34, c=c, marker=mk, edgecolor="white", lw=.8, label=lab, zorder=3)
     ax[0].axvline(b1.cycle_life.min(), color="#8a8984", lw=.8, ls=":"); ax[0].text(b1.cycle_life.min(), hi * .97, " Train min", fontsize=8, va="top", color="#5c5b56")
     ax[0].set(xscale="log", yscale="log", xlim=(lo, hi), ylim=(lo, hi), xlabel="True cycle life", ylabel="Predicted cycle life", title=f"{title_tag}: {fs} / {mn}"); ax[0].legend(fontsize=8)
@@ -153,7 +154,7 @@ def run_stage(stage, df, b1, TR, VA, cv, eval_batches, out):
     for b in eval_batches:
         tb = df[df.batch == b].reset_index(drop=True)
         t_full, p = fit_eval(b1, tb, cols, mn); t_tr, _ = fit_eval(TR, tb, cols, mn)
-        perf[b] = dict(test=t_full, test_trainonly=t_tr, n=len(p)); preds.append(p.assign(split=f"Test(B{b})"))
+        perf[b] = dict(test=t_full, test_trainonly=t_tr, n=len(p), n_fit=len(b1.dropna(subset=cols))); preds.append(p.assign(split=f"Test(B{b})"))
     perf_df = perf_table(best.CV_group, best.CV_group_sd, valid, rob, len(VA), perf, fs, mn)
     print(perf_df.to_string(index=False))
     P = pd.concat(preds, ignore_index=True); P["below_train_min"] = P.cycle_life < b1.cycle_life.min()
@@ -191,11 +192,11 @@ def main():
     comb.to_csv(out / "model_performance.csv", index=False)
     print("\n[최종 성능표]\n", comb.to_string(index=False))
     bfs, bmn = BASELINE; brow = cv[(cv.featset == bfs) & (cv.model == bmn)].iloc[0]
-    bt, _ = fit_eval(b1, df[df.batch == 2], FEATURE_SETS[bfs], bmn)
-    pd.DataFrame([dict(model=f"{bfs} / {bmn} (논문 Variance baseline)", train_cv=brow.CV_group, valid=brow.Valid, test_b2=bt)] +
-                 [dict(model=f"{r['fs']} / {r['mn']} ({r['label']})", train_cv=r["train"], valid=r["valid"], test_b2=r["perf_raw"][2]["test"]) for r in res.values()]
-                 ).round(1).to_csv(out / "baseline_vs_final.csv", index=False)
-
+    bt = {b: fit_eval(b1, df[df.batch == b], FEATURE_SETS[bfs], bmn)[0] for b in a.eval_batches}
+    rows = [dict(model=f"{bfs} / {bmn} (논문 Variance baseline)", train_cv=brow.CV_group, valid=brow.Valid, **{f"test_b{b}": bt[b] for b in bt})]
+    rows += [dict(model=f"{r['fs']} / {r['mn']} ({r['label']})", train_cv=r["train"], valid=r["valid"],
+                  **{f"test_b{b}": r["perf_raw"][b]["test"] for b in a.eval_batches}) for r in res.values()]
+    pd.DataFrame(rows).round(1).to_csv(out / "baseline_vs_final.csv", index=False)
 
 if __name__ == "__main__":
     main()

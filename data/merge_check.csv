@@ -1,0 +1,6 @@
+b1,b2,policy_b1,policy_b2,b2_cycles,published_add,verified,merged
+b1c0,b2c7,3.6C(80%)-3.6C,4.8C(80%)-4.8C-newstructure,806,662,False,False
+b1c1,b2c8,3.6C(80%)-3.6C,5.2C(58%)-4C-newstructure,947,981,False,False
+b1c2,b2c9,3.6C(80%)-3.6C,5.6C(26%)-4.5C-newstructure,819,1060,False,False
+b1c3,b2c15,4C(80%)-4C,3.6C(9%)-5C,414,208,False,False
+b1c4,b2c16,4C(80%)-4C,4.8C(80%)-4.8C,499,482,False,False

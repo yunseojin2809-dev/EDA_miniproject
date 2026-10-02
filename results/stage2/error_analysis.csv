@@ -1,5 +1,5 @@
 group,count,mean,median,max,by
-False,30,44.82,43.43,73.98,new_structure
-True,9,17.36,12.86,53.4,new_structure
-False,9,17.36,12.86,53.4,below_train_min
-True,30,44.82,43.43,73.98,below_train_min
+False,30,24.68,27.26,42.55,new_structure
+True,9,36.69,28.02,86.89,new_structure
+False,9,36.69,28.02,86.89,below_train_min
+True,30,24.68,27.26,42.55,below_train_min

@@ -1,4 +1,4 @@
-model,train_cv,valid,test_b2
-V1 var / Linear (논문 Variance baseline),15.3,11.4,36.0
-D6 dQ4+QD2+QDmax / GPR (1차 (사전 확정)),8.9,6.9,38.5
-D6 dQ4+QD2+QDmax / GPR (개선 후 (외삽 검증 반영)),8.9,6.9,38.5
+model,train_cv,valid,test_b2,test_b3
+V1 var / Linear (논문 Variance baseline),8.7,9.7,28.6,11.7
+D6 dQ4+QD2+QDmax / ElasticNet (1차 (사전 확정)),5.5,7.5,26.9,9.8
+D6 dQ4+QD2+QDmax / Ridge (개선 후 (외삽 검증 반영)),5.6,7.5,27.5,9.8

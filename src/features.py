@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from .preprocess import CYC_HIGH, CYC_LOW, NOMINAL_CAP, V_GRID
+from .preprocess import CYC_HIGH, CYC_LOW, NOMINAL_CAP, QI_HIGH, QI_LOW, V_GRID
 
 POLICY_RE = re.compile(r"([\d.]+)C\(([\d.]+)%\)-([\d.]+)C")
 DQ_FEATS = ["dq_log_var", "dq_log_abs_min", "dq_log_abs_mean", "dq_skew", "dq_kurt"]
@@ -72,7 +72,7 @@ def build_features(cells: dict, SUMMARY: dict, meta: pd.DataFrame) -> pd.DataFra
     """meta(셀 목록) → 셀 단위 피처 테이블 (1 row = 1 cell)."""
     dq_rows = []
     for cid in meta.cell_id:
-        q_hi, q_lo = cells[cid]["qdlin"].get(CYC_HIGH), cells[cid]["qdlin"].get(CYC_LOW)
+        q_hi, q_lo = cells[cid]["qdlin"].get(QI_HIGH), cells[cid]["qdlin"].get(QI_LOW)
         if q_hi is None or q_lo is None:
             continue
         dq_rows.append({"cell_id": cid, **delta_q_features(np.asarray(q_hi, float) - np.asarray(q_lo, float))})
@@ -86,3 +86,23 @@ def build_features(cells: dict, SUMMARY: dict, meta: pd.DataFrame) -> pd.DataFra
     feat = pd.DataFrame([early_features(c, SUMMARY[c]) for c in base.cell_id])
     cols = ["cell_id", "batch", "cycle_life", "log_life", "long_life"] + DQ_FEATS + POL_FEATS
     return base[cols].merge(feat, on="cell_id")
+
+
+def main():
+    import argparse
+    from pathlib import Path
+    from .preprocess import clean_cells, load_cells
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--base", default="..", help="archive/, cache/ 가 있는 폴더 (Mini project)")
+    ap.add_argument("--out", default="data")
+    a = ap.parse_args(); base = Path(a.base)
+    cells = load_cells(base / "archive", base / "cache" / "cells_extracted.pkl")
+    cells, SUMMARY, meta, attr, merges = clean_cells(cells)
+    out = Path(a.out); out.mkdir(exist_ok=True, parents=True)
+    meta.to_csv(out / "meta_clean.csv", index=False); attr.to_csv(out / "attrition.csv"); merges.to_csv(out / "merge_check.csv", index=False)
+    build_features(cells, SUMMARY, meta).to_csv(out / "features_cell_level.csv", index=False)
+    print("saved:", out / "meta_clean.csv", out / "features_cell_level.csv")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,4 @@
+model,train_cv,valid,test_b2
+V1 var / Linear (논문 Variance baseline),15.3,11.4,36.0
+D6 dQ4+QD2+QDmax / GPR (1차 (사전 확정)),8.9,6.9,38.5
+D6 dQ4+QD2+QDmax / GPR (개선 후 (외삽 검증 반영)),8.9,6.9,38.5

@@ -1,7 +1,10 @@
 구분,MAPE (%),비고
-Train (Batch 1 CV),8.9,"정책단위 Repeated 5-Fold x10, SD=3.4"
-Valid (Batch 1 Hold-out),6.9,정책단위 Hold-out 9셀; 30개 시드 평균 7.6+-2.0 (범위 4.1~11.4)
-Test (Batch 2),38.5,"Batch1 전체(41셀) 재학습, n=39; Train(32)만 학습 시 37.3"
-Gap (Train-Valid),-2.0,(+) : 과적합 의심  [Valid - Train]
-Gap (Valid-Test),31.6,(+) : 배치간 일반화 저하 의심  [Test - Valid]
-Gap (Target-Test),29.4,Target : 원논문 9.1%  [Test - Target]
+Train (Batch 1 CV),5.6,"정책단위 Repeated 5-Fold x10, SD=1.4"
+Valid (Batch 1 Hold-out),7.5,정책단위 Hold-out 7셀; 30개 시드 평균 6.0+-1.4 (범위 3.1~8.8)
+Test (Batch 2),27.5,"Batch1 전체(36셀) 재학습, n=39; Train 부분만 학습 시 27.6"
+Gap (Train-Valid),1.9,(+) : 과적합 의심  [Valid - Train]
+Gap (Valid-Test),19.9,(+) : 배치간 일반화 저하 의심  [Test - Valid]
+Gap (Target-Test),18.4,Target : 원논문 9.1%  [Test - Target]
+Test (Batch 3),9.8,n=40
+Gap (Batch2-Batch3),-17.7,Test 성능 간 비교  [Batch3 - Batch2]
+Gap (Target-Test) [Batch 3],0.7,"Batch 3 기준, 원논문 성능 비교"
